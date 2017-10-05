@@ -1,21 +1,16 @@
 /***************************************************************************
  *
- *   File        : tasks.h
+ *   File        : newton_raphson.c
  *   Student Id  : 757931
  *   Name        : Sebastian Baker
  *
  ***************************************************************************/
 
-#ifndef TASKS_H
-
 #include "newton_raphson.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-void shockwave(const char* q2_file);
-
-void linalgbsys(const char* q4_file);
-
-void interp(const char* q5_file, const double xo);
-
-void heateqn(const char* q6_file);
-
-#endif
+double newtonRaphson(double start, double* params, double (*f)(double, double*)) {
+    
+}
