@@ -7,10 +7,30 @@
  ***************************************************************************/
 
 #include "newton_raphson.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 
-double newtonRaphson(double start, double* params, double (*f)(double, double*)) {
-    
+
+int newtonRaphson(double* xi, double* params, double (*f)(double, double*)) {
+
+    double fx = f((*xi), params);
+
+    int i=0;
+    while( (i < MAX_ITERATIONS) && (fabs(fx) > EPS) ) {
+
+        fx = f((*xi), params);
+        (*xi) = (*xi) - fx / dfdx((*xi), params, f);
+
+        i++;
+    }
+
+    if (fabs(fx) > EPS) { 
+        return ROOTFIND_FAIL;
+    }
+
+    return i;
+}
+
+double dfdx(double x, double* params, double (*f)(double, double*)) {
+
+    double df = f(x+DX/2, params) - f(x-DX/2, params);
+    return df/(DX);
 }
