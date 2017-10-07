@@ -5,8 +5,9 @@
  *   Name        : Sebastian Baker
  *
  ***************************************************************************/
-
-#include "newton_raphson.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "thomas_alg.h"
 
 #ifndef TASKS_H
 
@@ -30,6 +31,11 @@
 #define RADIAN_INCREMENT_2B DEG2RAD(1)
 #define M_LEN_2C 20
 
+#define NUM_PARAMS_3 4
+#define FILENAME_3 "out_linalsys.csv"
+#define FILE_HEADER_3 "x\n"
+
+// Input type for shockwave question (Question 2)
 typedef struct input_2 {
 	double M_a;
 	double t_a;
@@ -39,6 +45,7 @@ typedef struct input_2 {
 	double *M_c;
 	int NumM_c;
 } input_2_t;
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * SHOCKWAVE HELPER FUNCTIONS */
 
@@ -50,6 +57,13 @@ double f_2(double beta, double* params);
 void shockwave_2a(const input_2_t *parsed);
 void shockwave_2b(const input_2_t *parsed);
 void shockwave_2c(const input_2_t *parsed);
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
+
+tridiag_t *parseInput_3(const char* filename);
+void printTridiag_3(tridiag_t *m);
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * TASK FUNCTIONS */
 

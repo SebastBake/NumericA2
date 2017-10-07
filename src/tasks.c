@@ -5,6 +5,7 @@
  *   Name        : Sebastian Baker
  *
  ***************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -13,32 +14,77 @@
 #include <assert.h>
 #include "tasks.h"
 #include "newton_raphson.h"
+#include "thomas_alg.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * TASK FUNCTIONS */
 
-void shockwave(const char* q2_filename) {
+void shockwave(const char* filename) {
 
-	input_2_t *parsed = parseInput_2(q2_filename);
+	input_2_t *parsed = parseInput_2(filename);
 	shockwave_2a(parsed);
 	shockwave_2b(parsed);
 	shockwave_2c(parsed);
 	freeInput_2(parsed);
 }
 
-void linalgbsys(const char* q4_filename) {
-	
+void linalgbsys(const char* filename) {
+
+	tridiag_t *m = parseInput_3(filename);
+	assert(solveTridiag(m) == SOLVER_SUCCESS);
+	printTridiag_3(m);
+
+
 }
 
-void interp(const char* q5_filename, const double xo) {
+void interp(const char* filename, const double xo) {
 	printf("interp() - IMPLEMENT ME!\n");
 }
 
-void heateqn(const char* q6_filename) {
+void heateqn(const char* filename) {
 	printf("heateqn() - IMPLEMENT ME!\n");
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
 
+tridiag_t *parseInput_3(const char* filename) {
+	
+	assert(filename!=NULL);
+
+	tridiag_t *m = newTridiag();
+
+	// open file
+	FILE* fp = fopen(filename, FILE_READONLY);
+	assert(fp != NULL);
+
+	double tmp_a, tmp_b, tmp_c, tmp_q;
+	fscanf(fp, "a,b,c,q\n");
+	int read = 0;
+	while(1) {
+		read = fscanf(fp,"%lf,%lf,%lf,%lf\n", &tmp_a, &tmp_b, &tmp_c, &tmp_q);
+		if(read != NUM_PARAMS_3) { break; }
+		appendTridiagRow(m,tmp_a, tmp_b, tmp_c, tmp_q);
+	}
+
+	fclose(fp);
+	return m;
+}
+
+void printTridiag_3(tridiag_t *m) {
+
+	assert(m!=NULL);
+
+	FILE* fp = fopen(FILENAME_3, FILE_OVERWRITE);
+	assert(fp != NULL);
+
+	fprintf(fp, FILE_HEADER_3);
+	int i=1;
+	for(i=1; i <= m->N; i++) {
+		tridiag_row_t *r = getTridiagRow(m, i);
+		fprintf(fp,"%f\n",r->x);
+	}
+
+	fclose(fp);
+}
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * SHOCKWAVE HELPER FUNCTIONS */
