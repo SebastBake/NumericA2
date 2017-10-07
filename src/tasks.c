@@ -32,8 +32,7 @@ void linalgbsys(const char* filename) {
 	tridiag_t *m = parseInput_3(filename);
 	assert(solveTridiag(m) == SOLVER_SUCCESS);
 	printTridiag_3(m);
-
-
+	freeTridiag(m);
 }
 
 void interp(const char* filename, const double xo) {

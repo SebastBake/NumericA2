@@ -109,7 +109,6 @@ int computeTridiag_Q_s(tridiag_t *m) {
 		r = getTridiagRow(m, i);
 		if(TINY(rPrev->a_s)) { return SOLVER_FAIL; }
 		r->Q_s = r->Q - r->c * rPrev->Q_s / rPrev->a_s;
-		printf("r->Q_s = %f\n", r->Q_s);
 	}
 
 	return SOLVER_SUCCESS;
@@ -119,19 +118,19 @@ int computeTrigiag_x(tridiag_t *m) {
 	
 	assert(m!=NULL);
 	
-		// case for row N : x = Q_s/a_s
-		int i=m->N;
-		tridiag_row_t *r = getTridiagRow(m, i);	
-		tridiag_row_t *rPrev = r;
-		r->x = r->Q_s/r->a_s;
-	
-		// case for row N-1, N-2, N-3...1 : x = ( Q_s − b * xPrev ) / a_s
-		while(--i >= COMPUTE_x_END) {
-			rPrev = r;
-			r = getTridiagRow(m, i);
-			if(TINY(rPrev->a_s)) { return SOLVER_FAIL; }
-			r->x = (r->Q_s - r->b * rPrev->x) / r->a_s;
-		}
-	
-		return SOLVER_SUCCESS;
+	// case for row N : x = Q_s/a_s
+	int i=m->N;
+	tridiag_row_t *r = getTridiagRow(m, i);	
+	tridiag_row_t *rPrev = r;
+	r->x = r->Q_s/r->a_s;
+
+	// case for row N-1, N-2, N-3...1 : x = ( Q_s − b * xPrev ) / a_s
+	while(--i >= COMPUTE_x_END) {
+		rPrev = r;
+		r = getTridiagRow(m, i);
+		if(TINY(rPrev->a_s)) { return SOLVER_FAIL; }
+		r->x = (r->Q_s - r->b * rPrev->x) / r->a_s;
+	}
+
+	return SOLVER_SUCCESS;
 }
