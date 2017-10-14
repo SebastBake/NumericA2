@@ -15,7 +15,7 @@
 #define COMPUTE_Q_S_START 1
 #define COMPUTE_x_END 1
 
-#define INIT_ARR_LEN 20
+#define THOMAS_INIT_ARR_LEN 20
 #define TINY(x) fabs(x) < 1e-11
 #define SOLVER_FAIL -1
 #define SOLVER_SUCCESS 1

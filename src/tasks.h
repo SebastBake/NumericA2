@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "thomas_alg.h"
+#include "interpolate.h"
 
 #ifndef TASKS_H
 
@@ -35,16 +36,32 @@
 #define FILENAME_3 "out_linalsys.csv"
 #define FILE_HEADER_3 "x\n"
 
+#define NUM_PARAMS_5 2
+#define FILENAME_5 "out_interp.csv"
+#define HEADER_LAGRANGE "lagrange"
+#define HEADER_CUBIC "cubic"
+
 // Input type for shockwave question (Question 2)
 typedef struct input_2 {
+
 	double M_a;
 	double t_a;
 	double g_a;
 	double b_l_a;
 	double b_u_a;
 	double *M_c;
-	int NumM_c;
+	int num_M_c;
+
 } input_2_t;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * *  INTERP HELPER FUNCTIONS */
+
+interp_set_t* parseInput_5(const char* filename);
+
+/* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
+
+tridiag_t *parseInput_3(const char* filename);
+void printTridiag_3(tridiag_t *m);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * SHOCKWAVE HELPER FUNCTIONS */
@@ -57,12 +74,6 @@ double f_2(double beta, double* params);
 void shockwave_2a(const input_2_t *parsed);
 void shockwave_2b(const input_2_t *parsed);
 void shockwave_2c(const input_2_t *parsed);
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
-
-tridiag_t *parseInput_3(const char* filename);
-void printTridiag_3(tridiag_t *m);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * TASK FUNCTIONS */

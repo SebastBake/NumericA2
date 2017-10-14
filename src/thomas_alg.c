@@ -17,7 +17,7 @@ tridiag_t *newTridiag() {
 	tridiag_t *m = (tridiag_t*)malloc(sizeof(tridiag_t));
 	assert(m != NULL);
 
-	m->arrLen = INIT_ARR_LEN;
+	m->arrLen = THOMAS_INIT_ARR_LEN;
 	m->N = 0;
 
 	m->rows = (tridiag_row_t*)calloc( m->arrLen, sizeof(tridiag_row_t));
@@ -39,7 +39,7 @@ void appendTridiagRow(tridiag_t *m, double a, double b, double c, double Q) {
 
 	m->N++;
 	if(m->N == m->arrLen) {
-		m->arrLen += INIT_ARR_LEN;
+		m->arrLen += THOMAS_INIT_ARR_LEN;
 		m->rows = (tridiag_row_t*)realloc( m->rows, m->arrLen*sizeof(tridiag_row_t));
 		assert(m->rows!=NULL);
 	}

@@ -36,12 +36,56 @@ void linalgbsys(const char* filename) {
 }
 
 void interp(const char* filename, const double xo) {
-	printf("interp() - IMPLEMENT ME!\n");
+	
+	interp_set_t* set = parseInput_5(filename);
+	lagrange_eqn_t* lagEqn = newLagrangeEqn(set);
+
+	interp_pt_t* lagEval;
+
+	double i=0;
+	for(i=0; i<20; i++) {
+		lagEval = evaluateLagrangeEqn(lagEqn, i);
+		printf("evaluated: %f, %f\n", lagEval->x, lagEval->fx);
+		freeInterpPt(lagEval);
+	}
+	
+	freeLagrangeEqn(lagEqn);
+	freeInterpSet(set);
 }
 
 void heateqn(const char* filename) {
 	printf("heateqn() - IMPLEMENT ME!\n");
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * INTERP HELPER FUNCTIONS */
+
+interp_set_t* parseInput_5(const char* filename) {
+
+	assert(filename!=NULL);
+
+	interp_set_t* newSet = newInterpSet(); 
+
+	// open file
+	FILE* fp = fopen(filename, FILE_READONLY);
+	assert(fp != NULL);
+
+	double tmp_x, tmp_fx;
+	fscanf(fp, "x,f(x)\n");
+	int read = 0;
+	int i=0;
+	while(1) {
+		read = fscanf(fp,"%lf,%lf\n", &tmp_x, &tmp_fx);
+		if(read != NUM_PARAMS_5) { break; }
+		appendPtToSet(newSet, newInterpPt(tmp_x, tmp_fx) );
+		printf("set: %f, %f\n", (newSet->pts[i])->x, (newSet->pts[i])->fx);
+		i++;
+	}
+
+	fclose(fp);
+
+	return newSet;
+}
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
 
@@ -141,7 +185,7 @@ void parseInputMvals_2(FILE* fp, input_2_t* parsed) {
 		}
 		i++;
 	}
-	parsed->NumM_c = i;
+	parsed->num_M_c = i;
 }
 
 void freeInput_2(input_2_t *parsed) {
@@ -223,7 +267,7 @@ void shockwave_2c(const input_2_t *parsed) {
 	fprintf(fp,FILE_HEADER_2BC);
 	
 	int i=0;
-	for(i=0; i<parsed->NumM_c; i++) {
+	for(i=0; i<parsed->num_M_c; i++) {
 		double params[] = { parsed->M_c[i], RADIAN_START_2B, parsed->g_a };
 		shockwavePrintThetaRange_2bc( fp, params);
 	}
