@@ -39,16 +39,18 @@ void interp(const char* filename, const double xo) {
 	
 	interp_set_t* set = parseInput_5(filename);
 	lagrange_eqn_t* lagEqn = newLagrangeEqn(set);
+	cub_spline_t* spline = newCubSpline(set);
 
-	interp_pt_t* lagEval;
+	// generates data for plot
+	plotInterp_5(lagEqn, spline);
 
-	double i=0;
-	for(i=0; i<20; i++) {
-		lagEval = evaluateLagrangeEqn(lagEqn, i);
-		printf("evaluated: %f, %f\n", lagEval->x, lagEval->fx);
-		freeInterpPt(lagEval);
-	}
-	
+	interp_pt_t* lagEval = evaluateLagrangeEqn(lagEqn, xo);
+	interp_pt_t* splineEval = evaluateCubSpline(spline, xo);
+	printInterp_5(lagEval->fx, splineEval->fx);
+	freeInterpPt(lagEval);
+	freeInterpPt(splineEval);
+
+	freeCubSpline(spline);
 	freeLagrangeEqn(lagEqn);
 	freeInterpSet(set);
 }
@@ -77,13 +79,52 @@ interp_set_t* parseInput_5(const char* filename) {
 		read = fscanf(fp,"%lf,%lf\n", &tmp_x, &tmp_fx);
 		if(read != NUM_PARAMS_5) { break; }
 		appendPtToSet(newSet, newInterpPt(tmp_x, tmp_fx) );
-		printf("set: %f, %f\n", (newSet->pts[i])->x, (newSet->pts[i])->fx);
+		//printf("set: %f, %f\n", (newSet->pts[i])->x, (newSet->pts[i])->fx);
 		i++;
 	}
 
 	fclose(fp);
 
 	return newSet;
+}
+
+void printInterp_5(double lag, double spline) {
+
+	// open file
+	FILE* fp = fopen(FILENAME_5, FILE_OVERWRITE);
+	assert(fp != NULL);
+
+	fprintf(fp, HEADER_LAGRANGE_5);
+	fprintf(fp, "%.6f\n", lag);
+	fprintf(fp, HEADER_CUBIC_5);
+	fprintf(fp, "%.6f\n", spline);
+
+	fclose(fp);
+}
+
+void plotInterp_5(lagrange_eqn_t* lagEqn, cub_spline_t* spline) {
+
+	// open file
+	FILE* fp = fopen(PLOT_FILENAME_5, FILE_OVERWRITE);
+	assert(fp != NULL);
+
+	fprintf(fp, PLOT_HEADER_LAGRANGE_5);
+
+	double x = PLOT_START_5 + PLOT_INTERVAL_5;
+	interp_pt_t* tmp_pt;
+	while(x < PLOT_END_5) {
+
+		fprintf(fp, "%f,", x);
+		tmp_pt = evaluateLagrangeEqn(lagEqn, x);
+		fprintf(fp, "%f,", tmp_pt->fx);
+		freeInterpPt(tmp_pt);
+		tmp_pt = evaluateCubSpline(spline, x);
+		fprintf(fp, "%f\n", tmp_pt->fx);
+		freeInterpPt(tmp_pt);
+		x = x + PLOT_INTERVAL_5;
+	}
+
+	fclose(fp);
 }
 
 

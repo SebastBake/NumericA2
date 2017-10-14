@@ -25,7 +25,7 @@
 #define F_2(b,M,t,g) (2.0/tan(b)) * (pow(M*sin(b), 2.0) - 1.0) / (M*M*(g + cos(2.0*b)) + 2.0) - tan(t)
 #define B_l_GUESS_2 20.0
 #define B_u_GUESS_2 90.0
-#define FILENAME_2B "my_2_b.csv"
+#define FILENAME_2B "my_2b.csv"
 #define FILENAME_2C "out_shock.csv"
 #define FILE_HEADER_2BC "M,theta,beta_lower,beta_upper\n"
 #define RADIAN_START_2B 0
@@ -37,9 +37,14 @@
 #define FILE_HEADER_3 "x\n"
 
 #define NUM_PARAMS_5 2
+#define PLOT_FILENAME_5 "my_5.csv"
 #define FILENAME_5 "out_interp.csv"
-#define HEADER_LAGRANGE "lagrange"
-#define HEADER_CUBIC "cubic"
+#define PLOT_START_5 0
+#define PLOT_END_5 8
+#define PLOT_INTERVAL_5 0.01
+#define PLOT_HEADER_LAGRANGE_5 "x,lagrange,spline\n"
+#define HEADER_LAGRANGE_5 "lagrange\n"
+#define HEADER_CUBIC_5 "cubic\n"
 
 // Input type for shockwave question (Question 2)
 typedef struct input_2 {
@@ -57,6 +62,8 @@ typedef struct input_2 {
 /* * * * * * * * * * * * * * * * * * * * * * * * * *  INTERP HELPER FUNCTIONS */
 
 interp_set_t* parseInput_5(const char* filename);
+void printInterp_5(double lag, double spline);
+void plotInterp_5(lagrange_eqn_t* lagEqn, cub_spline_t* splineEqn);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
 

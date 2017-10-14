@@ -9,8 +9,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <assert.h>
 #include "interpolate.h"
+#include "thomas_alg.h"
 
 // Create a new data set
 interp_set_t* newInterpSet() {
@@ -187,18 +189,15 @@ cub_spline_t* newCubSpline(interp_set_t* set) {
 	cub_spline_t* spline = (cub_spline_t*)malloc(sizeof(cub_spline_t));
 	assert(spline!=NULL);
 
-	int segsSize = (set->N-1)*sizeof(cub_spline_seg_t*);
-	spline->segs = (cub_spline_seg_t*)malloc(segsSize);
+	int segsSize = (set->N)*sizeof(cub_spline_seg_t*);
+	spline->segs = (cub_spline_seg_t**)malloc(segsSize);
 	assert(spline->segs != NULL);
 
 	spline->num_segs = set->N-1;
 
 	int i=0;
-	double x_lo, x_hi;
-	for(i=0; i < spline->num_segs; i++) {
-		x_lo = (set->pts[i])->x;
-		x_hi = (set->pts[i+1])->x;
-		spline->segs = newEmptyCubSplineSegment(i, x_lo, x_hi);
+	for(i=0; i < set->N; i++) {
+		spline->segs[i] = newEmptyCubSplineSegment(i, (set->pts[i])->x);
 	}
 
 	assert(CUB_SPLINE_COMPUTE_SUCCESS == computeCubSplineConstants(set, spline));
@@ -206,14 +205,13 @@ cub_spline_t* newCubSpline(interp_set_t* set) {
 	return spline;
 }
 
-cub_spline_seg_t* newEmptyCubSplineSegment(int index, double x_lo, double x_hi) {
+cub_spline_seg_t* newEmptyCubSplineSegment(int index, double x_lo) {
 
 	cub_spline_seg_t* seg = (cub_spline_seg_t*)malloc(sizeof(cub_spline_seg_t));
 	assert(seg!=NULL);
 
 	seg->index = index;
 	seg->x_lo = x_lo;
-	seg->x_hi = x_hi;
 	seg->a = 0;
 	seg->b = 0;
 	seg->c = 0;
@@ -227,7 +225,7 @@ void freeCubSpline(cub_spline_t* spline) {
 	assert(spline!=NULL);
 
 	int i=0;
-	for (i=0; i< spline->num_segs; i++) {
+	for (i=0; i<= spline->num_segs; i++) {
 		freeCubSplineSegment(spline->segs[i]);
 	}
 
@@ -238,6 +236,17 @@ void freeCubSpline(cub_spline_t* spline) {
 void freeCubSplineSegment(cub_spline_seg_t* seg) {
 	assert(seg!=NULL);
 	free(seg);
+}
+
+double splineH(int index, cub_spline_t* spline) {
+
+	assert(spline!=NULL);
+	assert(index < spline->num_segs);
+
+	double x_lo = (spline->segs[index])->x_lo;
+	double x_hi = (spline->segs[index+1])->x_lo;
+
+	return x_hi - x_lo;
 }
 
 int computeCubSplineConstants(interp_set_t* set, cub_spline_t* spline) {
@@ -264,7 +273,7 @@ int computeCubSplineAs(interp_set_t* set, cub_spline_t* spline) {
 	assert(spline!=NULL);
 
 	int i=0;
-	for(i=0; i <spline->num_segs; i++) {
+	for(i=0; i <=spline->num_segs; i++) {
 		(spline->segs[i])->a = (set->pts[i])->fx;
 	}
 
@@ -273,36 +282,114 @@ int computeCubSplineAs(interp_set_t* set, cub_spline_t* spline) {
 
 int computeCubSplineBs(interp_set_t* set, cub_spline_t* spline) {
 
-
 	assert(set!=NULL);
 	assert(spline!=NULL);
 
 	int i=0;
+	double h_i, a_i, a_ip, c_i, c_ip;
 	for(i=0; i <spline->num_segs; i++) {
-		
+
+		h_i = splineH(i,spline);
+		a_i = (spline->segs[i])->a;
+		a_ip = (spline->segs[i+1])->a;
+		c_i = (spline->segs[i])->c;
+		c_ip = (spline->segs[i+1])->c;
+
+		if(TINY(h_i)) { return CUB_SPLINE_COMPUTE_FAIL; }
+
+		(spline->segs[i])->b = CUB_SPLINE_B(h_i, a_i, a_ip, c_i, c_ip);
 	}
+	
+	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
 int computeCubSplineCs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
 	assert(spline!=NULL);
+
+	// generate tridiag matrix
+	tridiag_t *m = newTridiag();
+	appendTridiagRow(m, 1.0, 0, 0, 0);
+	
+	int i=0;
+	double h_im, h_i,  a_im, a_i, a_ip;
+	double a, b, c, Q;
+	for(i=1; i<spline->num_segs; i++) {
+		h_im = splineH(i-1,spline);
+		h_i = splineH(i,spline);
+		a_im = (spline->segs[i-1])->a;
+		a_i = (spline->segs[i])->a;
+		a_ip = (spline->segs[i+1])->a;
+
+		a = CUB_SPLINE_C_a(h_i, h_im);
+		b = h_i;
+		c = h_im;
+		Q = CUB_SPLINE_C_RHS(h_im, h_i, a_im, a_i, a_ip);
+
+		appendTridiagRow(m, a, b, c, Q);
+	}
+	appendTridiagRow(m, 1.0, 0, 0, 0);
+
+	// solve tridiag
+	if (solveTridiag(m) != SOLVER_SUCCESS) {
+		freeTridiag(m);
+		return CUB_SPLINE_COMPUTE_FAIL;
+	}
+
+	// load c's into spline
+	for(i=0; i<=spline->num_segs; i++) {
+		(spline->segs[i])->c = getTridiagRow(m, i+1)->x;
+	}
+
+	// free tridiag
+	freeTridiag(m);
+
+	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
 int computeCubSplineDs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
 	assert(spline!=NULL);
+
+	int i=0;
+	double h_i, c_i, c_ip;
+	for(i=0; i<spline->num_segs; i++) {
+
+		h_i = splineH(i,spline);
+		c_i = (spline->segs[i])->c;
+		c_ip = (spline->segs[i+1])->c;
+
+		if(TINY(h_i)) { return CUB_SPLINE_COMPUTE_FAIL; }
+
+		(spline->segs[i])->d = CUB_SPLINE_D(h_i, c_i, c_ip);
+	}
+
+	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
 interp_pt_t* evaluateCubSpline(cub_spline_t* spline, double x) {
 
 	assert(spline!=NULL);
+
+	double x_lo = (spline->segs[0])->x_lo;
+	double x_hi = (spline->segs[spline->num_segs])->x_lo;
+	assert(x>=x_lo && x<=x_hi);
+
+	int i=0;
+	while(x>x_lo) {
+		i++;
+		x_lo = (spline->segs[i])->x_lo;
+	}
+
+	return evaluateCubSplineSegment(spline->segs[i-1], x);
 }
 
-double evaluateCubSplineSegment(cub_spline_seg_t* seg, double x) {
+interp_pt_t* evaluateCubSplineSegment(cub_spline_seg_t* seg, double x) {
 	
 	assert(seg!=NULL);
-
+	double fx = EVAL_CUB_SPLINE(seg->a, seg->b, seg->c, seg->d, seg->x_lo, x);
+	return newInterpPt(x, fx);
 }
 
