@@ -6,13 +6,7 @@
  *
  ***************************************************************************/
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
 #include "interpolate.h"
-#include "thomas_alg.h"
 
 // Create a new data set
 interp_set_t* newInterpSet() {
@@ -378,7 +372,7 @@ interp_pt_t* evaluateCubSpline(cub_spline_t* spline, double x) {
 	assert(x>=x_lo && x<=x_hi);
 
 	int i=0;
-	while(x>x_lo) {
+	while(x>=x_lo) {
 		i++;
 		x_lo = (spline->segs[i])->x_lo;
 	}

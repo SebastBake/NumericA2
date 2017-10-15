@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "newton_raphson.h": "c"
+        "newton_raphson.h": "c",
+        "interpolate.h": "c",
+        "type_traits": "cpp"
     }
 }

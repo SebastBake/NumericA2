@@ -6,15 +6,7 @@
  *
  ***************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <sys/time.h>
-#include <string.h>
-#include <assert.h>
 #include "tasks.h"
-#include "newton_raphson.h"
-#include "thomas_alg.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * TASK FUNCTIONS */
 
@@ -44,6 +36,7 @@ void interp(const char* filename, const double xo) {
 	// generates data for plot
 	plotInterp_5(lagEqn, spline);
 
+	// calculate the interpolated values at xo
 	interp_pt_t* lagEval = evaluateLagrangeEqn(lagEqn, xo);
 	interp_pt_t* splineEval = evaluateCubSpline(spline, xo);
 	printInterp_5(lagEval->fx, splineEval->fx);
@@ -56,10 +49,68 @@ void interp(const char* filename, const double xo) {
 }
 
 void heateqn(const char* filename) {
-	printf("heateqn() - IMPLEMENT ME!\n");
+
+	heat_sim_t* exFe = parseInput_6(filename);
+	eulerExFe(exFe);
+	printSim_6(exFe, FILENAME_EX_FE_6);
+	freeHeatSim(exFe);
+
+	heat_sim_t* exVe = parseInput_6(filename);
+	eulerExFe(exVe);
+	printSim_6(exVe, FILENAME_EX_VE_6);
+	freeHeatSim(exVe);
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * INTERP HELPER FUNCTIONS */
+/* * * * * * * * * * * * * * * * * * * * * * * * * *  HEATEQN HELPER FUNCTIONS */
+
+heat_sim_t* parseInput_6(const char* filename) {
+
+	assert(filename!=NULL);
+
+	// open file
+	FILE* fp = fopen(filename, FILE_READONLY);
+	assert(fp != NULL);
+
+	double mu;
+	int Nx, Nt;
+
+	fscanf(fp, IN_HEADER_6);
+	assert(fscanf(fp,"%lf,%d,%d\n", &mu, &Nx, &Nt) == NUM_PARAMS_6);
+	fclose(fp);
+	
+	return newUnsolvedHeatSim(
+		Nx, Nt, X_LO_6, X_HI_6, T_LO_6, T_HI_6, mu, myInitialCondition_6 );
+}
+
+double myInitialCondition_6(double x) {
+
+	if(x>=IC_LO_6 && x<=IC_HI_6) {
+		return IC_6(x);
+	}
+	return 0.0;
+}
+
+void printSim_6(heat_sim_t* sim, const char* filename) {
+	
+	assert(sim!=NULL);
+	assert(filename!=NULL);
+
+	sim_cell_t** m = sim->cells; // cell matrix
+
+	FILE* fp = fopen(filename, FILE_OVERWRITE);
+	assert(fp!=NULL);
+
+	fprintf(fp, OUT_HEADER_6);
+
+	int i=0;
+	int j=100;
+	for(i=0; i<=sim->Nt; i++) {
+		fprintf(fp, "%.6f,%.6f\n", m[i][j].x, m[i][j].f);
+    }
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * *  INTERP HELPER FUNCTIONS */
 
 interp_set_t* parseInput_5(const char* filename) {
 
@@ -72,14 +123,13 @@ interp_set_t* parseInput_5(const char* filename) {
 	assert(fp != NULL);
 
 	double tmp_x, tmp_fx;
-	fscanf(fp, "x,f(x)\n");
+	fscanf(fp, IN_HEADER_5);
 	int read = 0;
 	int i=0;
 	while(1) {
 		read = fscanf(fp,"%lf,%lf\n", &tmp_x, &tmp_fx);
 		if(read != NUM_PARAMS_5) { break; }
 		appendPtToSet(newSet, newInterpPt(tmp_x, tmp_fx) );
-		//printf("set: %f, %f\n", (newSet->pts[i])->x, (newSet->pts[i])->fx);
 		i++;
 	}
 
@@ -110,7 +160,7 @@ void plotInterp_5(lagrange_eqn_t* lagEqn, cub_spline_t* spline) {
 
 	fprintf(fp, PLOT_HEADER_LAGRANGE_5);
 
-	double x = PLOT_START_5 + PLOT_INTERVAL_5;
+	double x = PLOT_START_5;
 	interp_pt_t* tmp_pt;
 	while(x < PLOT_END_5) {
 
@@ -141,7 +191,7 @@ tridiag_t *parseInput_3(const char* filename) {
 	assert(fp != NULL);
 
 	double tmp_a, tmp_b, tmp_c, tmp_q;
-	fscanf(fp, "a,b,c,q\n");
+	fscanf(fp, IN_HEADER_3);
 	int read = 0;
 	while(1) {
 		read = fscanf(fp,"%lf,%lf,%lf,%lf\n", &tmp_a, &tmp_b, &tmp_c, &tmp_q);
@@ -199,9 +249,11 @@ void parseInput2ndLine_2(FILE* fp, input_2_t* parsed) {
 	
 	assert(parsed!=NULL && fp!= NULL);
 
+	fscanf(fp, IN_1ST_HEADER_2);
+
 	assert(NUM_PARAMS_2 == fscanf(
 		fp,
-		"M,theta,beta_l,beta_u,gamma\n%lf,%lf,%lf,%lf,%lf\nM\n",
+		"%lf,%lf,%lf,%lf,%lf\n",
 		&(parsed->M_a),
 		&(parsed->t_a),
 		&(parsed->b_l_a),
@@ -213,6 +265,8 @@ void parseInput2ndLine_2(FILE* fp, input_2_t* parsed) {
 void parseInputMvals_2(FILE* fp, input_2_t* parsed) {
 	
 	assert(parsed!=NULL && fp!= NULL);
+
+	fscanf(fp, IN_2ND_HEADER_2);
 
 	int i=0;
 	int arrayLength = M_LEN_2C;

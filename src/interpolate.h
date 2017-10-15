@@ -6,7 +6,11 @@
  *
  ***************************************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <assert.h>
+#include "thomas_alg.h"
 
 #ifndef INTERPOLATE_H
 
@@ -14,10 +18,10 @@
 #define CUB_SPLINE_COMPUTE_SUCCESS 1
 #define CUB_SPLINE_COMPUTE_FAIL -1
 #define TINY(x) fabs(x) < 1e-11
-#define CUB_SPLINE_B(h_i, a_i, a_ip, c_i, c_ip) (a_ip-a_i)/h_i - h_i*(2.0*c_i+c_ip)/3.0
-#define CUB_SPLINE_C_RHS(h_im, h_i, a_im, a_i, a_ip) 3.0*(a_ip-a_i)/h_i + 3.0*(a_im-a_i)/h_im
-#define CUB_SPLINE_C_a(h_i, h_im) 2.0*(h_i+h_im)
-#define CUB_SPLINE_D(h_i, c_i, c_ip) (c_ip-c_i)/(3.0*h_i)
+#define CUB_SPLINE_B(h_1, a_1, a_2, c_1, c_2) (a_2-a_1)/h_1 - h_1*(2.0*c_1+c_2)/3.0
+#define CUB_SPLINE_C_RHS(h_0, h_1, a_0, a_1, a_2) 3.0*(a_2-a_1)/h_1 + 3.0*(a_0-a_1)/h_0
+#define CUB_SPLINE_C_a(h_1, h_0) 2.0*(h_1+h_0)
+#define CUB_SPLINE_D(h_1, c_1, c_2) (c_2-c_1)/(3.0*h_1)
 #define EVAL_CUB_SPLINE(a,b,c,d,x_i,x) a + b*(x-x_i) + c*pow(x-x_i,2) + d*pow(x-x_i,3)
 
 typedef struct interp_pt {
@@ -47,8 +51,8 @@ typedef struct lagrange_term {
 
 typedef struct lagrange_eqn {
 
-	int num_terms;
 	lagrange_term_t** terms;
+	int num_terms;
 
 } lagrange_eqn_t;
 
@@ -66,7 +70,7 @@ typedef struct cub_spline_segment {
 typedef struct cub_spline {
 
 	cub_spline_seg_t** segs;
-	int num_segs; // not including the unused/incomplete end segment
+	int num_segs; // not including the unused/incomplete end segment eg: 4 points means 3 segments
 
 } cub_spline_t;
 

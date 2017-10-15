@@ -11,7 +11,7 @@ CC=gcc
 CFLAGS=-Wall -Werror #-g -v -o0
 OUT=bin/main
 IN=input_files/
-SRC=src/interpolate.o src/thomas_alg.o src/newton_raphson.o src/tasks.o src/main.o
+SRC=src/heat_sim.o src/interpolate.o src/thomas_alg.o src/newton_raphson.o src/tasks.o src/main.o
 RUN=$(OUT) $(IN)in_shock.csv $(IN)in_linalsys.csv $(IN)in_interp.csv 5 $(IN)in_heateqn.csv
 
 compile: $(SRC)
