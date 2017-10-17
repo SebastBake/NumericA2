@@ -15,6 +15,7 @@
 #ifndef INTERPOLATE_H
 
 #define INTERP_INIT_ARRLEN 20
+#define QUADRATIC_NUM_PTS 3
 #define CUB_SPLINE_COMPUTE_SUCCESS 1
 #define CUB_SPLINE_COMPUTE_FAIL -1
 #define TINY(x) fabs(x) < 1e-11
@@ -24,6 +25,7 @@
 #define CUB_SPLINE_D(h_1, c_1, c_2) (c_2-c_1)/(3.0*h_1)
 #define EVAL_CUB_SPLINE(a,b,c,d,x_i,x) a + b*(x-x_i) + c*pow(x-x_i,2) + d*pow(x-x_i,3)
 
+// simple struct to hold an x,fx tuple
 typedef struct interp_pt {
 
 	double x;
@@ -31,6 +33,7 @@ typedef struct interp_pt {
 
 } interp_pt_t;
 
+// dynamic array to hold a set of points to interpolate
 typedef struct interp_set {
 
 	interp_pt_t** pts;
@@ -39,6 +42,7 @@ typedef struct interp_set {
 
 } interp_set_t;
 
+// represents a lagrange term
 typedef struct lagrange_term {
 
 	int index;
@@ -49,6 +53,7 @@ typedef struct lagrange_term {
 
 } lagrange_term_t;
 
+// represents a lagrange equation
 typedef struct lagrange_eqn {
 
 	lagrange_term_t** terms;
@@ -56,6 +61,7 @@ typedef struct lagrange_eqn {
 
 } lagrange_eqn_t;
 
+// represents a cubic spline segment
 typedef struct cub_spline_segment {
 
 	int index;
@@ -67,6 +73,7 @@ typedef struct cub_spline_segment {
 
 } cub_spline_seg_t;
 
+// represents a cubic spline
 typedef struct cub_spline {
 
 	cub_spline_seg_t** segs;
@@ -74,12 +81,14 @@ typedef struct cub_spline {
 
 } cub_spline_t;
 
+// manage set dynamic array
 interp_set_t* newInterpSet();
 interp_pt_t* newInterpPt(double x, double fx);
 void freeInterpSet(interp_set_t* set);
 void freeInterpPt(interp_pt_t* pt);
 void appendPtToSet(interp_set_t* set, interp_pt_t* pt);
 
+// create, evaluate lagrange equations
 lagrange_term_t* newLagrangeTerm(interp_set_t* set, int index);
 lagrange_eqn_t* newLagrangeEqn(interp_set_t* set);
 void freeLagrangeEqn(lagrange_eqn_t* eqn);
@@ -87,6 +96,7 @@ void freeLagrangeTerm(lagrange_term_t* term);
 interp_pt_t* evaluateLagrangeEqn(lagrange_eqn_t* eqn, double x);
 double evaluateLagrangeTerm(lagrange_term_t* term, double x);
 
+// create, evaluate cubic splines
 cub_spline_t* newCubSpline(interp_set_t* set);
 cub_spline_seg_t* newEmptyCubSplineSegment(int index, double x_lo);
 void freeCubSpline(cub_spline_t* spline);

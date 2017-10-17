@@ -45,14 +45,13 @@ int main(int argc, char *argv[]) {
 	interp_file_name = argv[ARGV_interp];
 	xo = atof(argv[ARGV_xo]);
 	heateqn_file_name = argv[ARGV_heateqn];
-	//printf("shockwave %s, linalgbsys %s, interp %s, xo %f, heateqn %s\n", shockwave_file_name, linalgbsys_file_name, interp_file_name, xo, heateqn_file_name);
 
 	/* Question 2 */
 	myTime_t shockwave_time = timer_start();
 	shockwave(shockwave_file_name);
 	printf("shockwave: %.2lf milliseconds\n", timer_stop(shockwave_time));
 	
-	/* Question 4 */
+	/* Question 3 */
 	myTime_t linalgbsys_time = timer_start();
 	linalgbsys(linalgbsys_file_name);
 	printf("linalgbsys: %.2lf milliseconds\n", timer_stop(linalgbsys_time));

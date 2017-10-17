@@ -7,6 +7,7 @@
  ***************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -24,6 +25,7 @@
 #define DEG2RAD(deg) deg * PI / 180.0
 #define RAD2DEG(rad) rad * 180.0 / PI
 
+// used for shockwave question
 #define NUM_PARAMS_2 5
 #define F_M_2 0
 #define F_T_2 1
@@ -40,14 +42,17 @@
 #define RADIAN_INCREMENT_2B DEG2RAD(1)
 #define M_LEN_2C 20
 
+// used for linear algebra question
 #define NUM_PARAMS_3 4
 #define FILENAME_3 "out_linalsys.csv"
 #define FILE_HEADER_3 "x\n"
 #define IN_HEADER_3 "a,b,c,q\n"
 
+// used for interpolation question
 #define NUM_PARAMS_5 2
 #define IN_HEADER_5 "x,f(x)\n"
-#define PLOT_FILENAME_5 "my_5.csv"
+#define PLOT_FILENAME_ANY_ORDER_5 "my_any_order_5.csv"
+#define PLOT_FILENAME_QUADRATIC_5 "my_quadratic_5.csv"
 #define FILENAME_5 "out_interp.csv"
 #define PLOT_START_5 0
 #define PLOT_END_5 8
@@ -56,6 +61,7 @@
 #define HEADER_LAGRANGE_5 "lagrange\n"
 #define HEADER_CUBIC_5 "cubic\n"
 
+// used for heat equation question
 #define NUM_PARAMS_6 3
 #define X_LO_6 0.0
 #define X_HI_6 1.0
@@ -69,6 +75,21 @@
 #define FILENAME_EX_FE_6 "out_heateqn_explicit_fe.csv"
 #define FILENAME_EX_VE_6 "out_heateqn_explicit_ve.csv"
 #define FILENAME_IM_FE_6 "out_heateqn_implicit_fe.csv"
+#define REF_Nx_6 1000
+#define TEST_NX_START 220
+#define TEST_NX_END 290
+#define TEST_NT_START 1500
+#define TEST_NT_END 3000
+#define TEST_NX_NT 1500 // nt for dx test good
+#define TEST_NT_NX 300 // nx for dt test
+#define NT_STEP 30
+#define REF_MU_6 0.005
+#define REF_Nt_6 1000
+#define REF_Dn_6 0.1
+#define Dt2Dn(dt, dx, mu) dt*mu/(dx*dx)
+#define Dn2Dt(Dn, dx, mu) Dn*(dx*dx)/mu
+#define DX_TEST_FILE "dx_test.csv"
+#define DT_TEST_FILE "dt_test.csv"
 
 // Input type for shockwave question (Question 2)
 typedef struct input_2 {
@@ -83,18 +104,25 @@ typedef struct input_2 {
 
 } input_2_t;
 
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * *  HEATEQN HELPER FUNCTIONS */
 
 heat_sim_t* parseInput_6(const char* filename);
+heat_sim_t* generateRefSoln_6(void (*solve)(heat_sim_t*));
+double calculateAbsAvgError_6(heat_sim_t* ref, heat_sim_t* sim);
 double myInitialCondition_6(double x);
 void printSim_6(heat_sim_t* sim, const char* filename);
+void runDxTest_6();
+void runDtTest_6();
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * *  INTERP HELPER FUNCTIONS */
 
 interp_set_t* parseInput_5(const char* filename);
+interp_pt_t* evaluateQuadLagrangeEqn(interp_set_t* set, double xo);
 void printInterp_5(double lag, double spline);
-void plotInterp_5(lagrange_eqn_t* lagEqn, cub_spline_t* splineEqn);
+void plotInterpAnyOrder_5(lagrange_eqn_t* lagEqn, cub_spline_t* splineEqn);
+void plotInterpQuadratic_5(interp_set_t* set, cub_spline_t* splineEqn);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * LINALGBYSYS HELPER FUNCTIONS */
@@ -121,5 +149,6 @@ void shockwave(const char* q2_file);
 void linalgbsys(const char* q4_file);
 void interp(const char* q5_file, const double xo);
 void heateqn(const char* q6_file);
+
 
 #endif

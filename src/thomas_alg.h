@@ -20,6 +20,7 @@
 #define SOLVER_FAIL -1
 #define SOLVER_SUCCESS 1
 
+// represents a row in a tridiagonal linear system
 typedef struct tridiag_row_struct {
 
     double a;
@@ -32,6 +33,7 @@ typedef struct tridiag_row_struct {
 
 } tridiag_row_t;
 
+// represents a tridiagonal linear system
 typedef struct tridiag_struct {
 
     tridiag_row_t *rows;

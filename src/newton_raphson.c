@@ -8,7 +8,7 @@
 
 #include "newton_raphson.h"
 
-
+// simple newton raphson implementation
 int newtonRaphson(double* xi, double* params, double (*f)(double, double*)) {
 
     double fx = f((*xi), params);
@@ -29,6 +29,7 @@ int newtonRaphson(double* xi, double* params, double (*f)(double, double*)) {
     return i;
 }
 
+// simple derivative approximation
 double dfdx(double x, double* params, double (*f)(double, double*)) {
 
     double df = f(x+DX/2, params) - f(x-DX/2, params);

@@ -47,12 +47,13 @@ void freeInterpSet(interp_set_t* set) {
 	free(set);
 }
 
-
+// frees an interpolation point
 void freeInterpPt(interp_pt_t* pt) {
 	assert(pt!=NULL);
 	free(pt);
 }
 
+// appends a new point to the set
 void appendPtToSet(interp_set_t* set, interp_pt_t* pt) {
 
 	assert(set!=NULL);
@@ -70,6 +71,7 @@ void appendPtToSet(interp_set_t* set, interp_pt_t* pt) {
 	set->N++;
 }
 
+// generates a lagrange term based on a point in the set
 lagrange_term_t* newLagrangeTerm(interp_set_t* set, int index) {
 
 	assert(set!=NULL);
@@ -103,6 +105,7 @@ lagrange_term_t* newLagrangeTerm(interp_set_t* set, int index) {
 	return newTerm;
 }
 
+// generates a lagrange eqn based on a set
 lagrange_eqn_t* newLagrangeEqn(interp_set_t* set) {
 
 	assert(set!=NULL);
@@ -126,6 +129,7 @@ lagrange_eqn_t* newLagrangeEqn(interp_set_t* set) {
 	return newEqn;
 }
 
+// frees lagrange eqn structure
 void freeLagrangeEqn(lagrange_eqn_t* eqn) {
 	
 	assert(eqn!=NULL);
@@ -140,6 +144,7 @@ void freeLagrangeEqn(lagrange_eqn_t* eqn) {
 	free(eqn);
 }
 
+// frees lagrange term struct
 void freeLagrangeTerm(lagrange_term_t* term) {
 	
 	assert(term!=NULL);
@@ -147,12 +152,14 @@ void freeLagrangeTerm(lagrange_term_t* term) {
 	free(term);
 }
 
+// evaluates a lagrange equation at x
 interp_pt_t* evaluateLagrangeEqn(lagrange_eqn_t* eqn, double x) {
 
 	assert(eqn!=NULL);
 
 	double fx = 0;
 
+	// sum of evaluated terms
 	int i=0;
 	for(i=0; i < eqn->num_terms ; i++) {
 		fx += evaluateLagrangeTerm(eqn->terms[i],x);
@@ -161,6 +168,7 @@ interp_pt_t* evaluateLagrangeEqn(lagrange_eqn_t* eqn, double x) {
 	return newInterpPt(x, fx);
 }
 
+// evaluate lagrange term at x
 double evaluateLagrangeTerm(lagrange_term_t* term, double x) {
 
 	assert(term!=NULL);
@@ -176,6 +184,7 @@ double evaluateLagrangeTerm(lagrange_term_t* term, double x) {
 	return numerator/term->denominator;
 }
 
+// generates a set of cubic splines from a set
 cub_spline_t* newCubSpline(interp_set_t* set) {
 
 	assert(set!=NULL);
@@ -194,11 +203,13 @@ cub_spline_t* newCubSpline(interp_set_t* set) {
 		spline->segs[i] = newEmptyCubSplineSegment(i, (set->pts[i])->x);
 	}
 
+	// compute the segment constants
 	assert(CUB_SPLINE_COMPUTE_SUCCESS == computeCubSplineConstants(set, spline));
 
 	return spline;
 }
 
+// generate a new empty spline segment
 cub_spline_seg_t* newEmptyCubSplineSegment(int index, double x_lo) {
 
 	cub_spline_seg_t* seg = (cub_spline_seg_t*)malloc(sizeof(cub_spline_seg_t));
@@ -214,6 +225,7 @@ cub_spline_seg_t* newEmptyCubSplineSegment(int index, double x_lo) {
 	return seg;
 }
 
+// free a cubic spline structure including segments
 void freeCubSpline(cub_spline_t* spline) {
 
 	assert(spline!=NULL);
@@ -227,11 +239,13 @@ void freeCubSpline(cub_spline_t* spline) {
 	free(spline);
 }
 
+// free a cubic spline segment structure
 void freeCubSplineSegment(cub_spline_seg_t* seg) {
 	assert(seg!=NULL);
 	free(seg);
 }
 
+// get the spline h_i value
 double splineH(int index, cub_spline_t* spline) {
 
 	assert(spline!=NULL);
@@ -243,6 +257,7 @@ double splineH(int index, cub_spline_t* spline) {
 	return x_hi - x_lo;
 }
 
+// compute the spline segment constants
 int computeCubSplineConstants(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
@@ -261,6 +276,7 @@ int computeCubSplineConstants(interp_set_t* set, cub_spline_t* spline) {
 	return CUB_SPLINE_COMPUTE_FAIL;
 }
 
+// compute spline a's
 int computeCubSplineAs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
@@ -274,6 +290,7 @@ int computeCubSplineAs(interp_set_t* set, cub_spline_t* spline) {
 	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
+// compute spline b's
 int computeCubSplineBs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
@@ -297,6 +314,7 @@ int computeCubSplineBs(interp_set_t* set, cub_spline_t* spline) {
 	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
+// compute spline c's by solving a tridiagonal matrix
 int computeCubSplineCs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
@@ -336,12 +354,12 @@ int computeCubSplineCs(interp_set_t* set, cub_spline_t* spline) {
 		(spline->segs[i])->c = getTridiagRow(m, i+1)->x;
 	}
 
-	// free tridiag
 	freeTridiag(m);
 
 	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
+// compute spline d's
 int computeCubSplineDs(interp_set_t* set, cub_spline_t* spline) {
 
 	assert(set!=NULL);
@@ -363,6 +381,7 @@ int computeCubSplineDs(interp_set_t* set, cub_spline_t* spline) {
 	return CUB_SPLINE_COMPUTE_SUCCESS;
 }
 
+// evaluate a spline at x
 interp_pt_t* evaluateCubSpline(cub_spline_t* spline, double x) {
 
 	assert(spline!=NULL);
@@ -371,15 +390,18 @@ interp_pt_t* evaluateCubSpline(cub_spline_t* spline, double x) {
 	double x_hi = (spline->segs[spline->num_segs])->x_lo;
 	assert(x>=x_lo && x<=x_hi);
 
+	// find relevant segment
 	int i=0;
 	while(x>=x_lo) {
 		i++;
 		x_lo = (spline->segs[i])->x_lo;
 	}
 
+	// calculate value
 	return evaluateCubSplineSegment(spline->segs[i-1], x);
 }
 
+// evaluate a cubic spline segment at x
 interp_pt_t* evaluateCubSplineSegment(cub_spline_seg_t* seg, double x) {
 	
 	assert(seg!=NULL);

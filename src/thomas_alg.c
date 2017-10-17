@@ -12,6 +12,7 @@
 #include <math.h>
 #include <assert.h>
 
+// create a new tridiagonal matrix linear system structure
 tridiag_t *newTridiag() {
 	
 	tridiag_t *m = (tridiag_t*)malloc(sizeof(tridiag_t));
@@ -26,13 +27,14 @@ tridiag_t *newTridiag() {
 	return m;
 }
 
+// free a tridiagonal matrix structure
 void freeTridiag(tridiag_t *m) {
-	
 	assert(m!=NULL);
 	free(m->rows);
 	free(m);
 }
 
+// add a row onto the bottom of a tridiagonal matrix
 void appendTridiagRow(tridiag_t *m, double a, double b, double c, double Q) {
 
 	assert(m!=NULL);	
@@ -51,12 +53,14 @@ void appendTridiagRow(tridiag_t *m, double a, double b, double c, double Q) {
 	r->Q = Q;
 }
 
+// get a row of a tridiagonal matrix
 tridiag_row_t *getTridiagRow(tridiag_t *m, int i) {
 	assert(m!=NULL);
 	assert(i<=m->N);
 	return &(m->rows[i-1]);
 }
 
+// Use thomas algorithm to solve a tridiagonal linear system
 int solveTridiag(tridiag_t *m) {
 
 	assert(m!=NULL);
@@ -72,6 +76,7 @@ int solveTridiag(tridiag_t *m) {
 	return SOLVER_FAIL;
 }
 
+// compute the a_s values for the tridiagonal linear system
 int computeTridiag_a_s(tridiag_t *m) {
 
 	assert(m!=NULL);
@@ -93,6 +98,7 @@ int computeTridiag_a_s(tridiag_t *m) {
 	return SOLVER_SUCCESS;
 }
 
+// compute the Q_s values for the tridiagonal linear system
 int computeTridiag_Q_s(tridiag_t *m) {
 	
 	assert(m!=NULL);
@@ -114,6 +120,7 @@ int computeTridiag_Q_s(tridiag_t *m) {
 	return SOLVER_SUCCESS;
 }
 
+// compute the x values for the tridiagonal linear system
 int computeTrigiag_x(tridiag_t *m) {
 	
 	assert(m!=NULL);
